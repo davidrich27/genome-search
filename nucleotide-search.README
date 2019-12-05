@@ -1,0 +1,15 @@
+/*********************************************/
+/*
+/*    Nucleotide Search README
+/*
+/*    ~ David Rich 
+/*
+/**********************************************/
+
+For the problem of nucleotide search, I began by reading in the Genome and Short-Read text files. 
+For each base pair, I looked up its two-bit encoding using an array as a lookup table via its ASCII value.
+For the genome, I bitpacked an unsigned long (64-bit) with the first 32 bases.  Then I populated an array of unsigned longs with every 32-base suffix in the genome.  For the last 31 suffixes, I created a second Genome-Edge array.  
+Next, I sorted the Genome array using a quicksort.  I stored the index of the suffix alongside the data in a struct so that the original position could be recovered.  
+Once it was sorted, I took the Short-Reads one at a time.  These varied in length (all encoded bits pushed to left of register), so I created a top and bottom Short-Read.  The top had all non-encoded bits masked as 0's (smallest value which contains the search query) and bottom had all non-encoded bits masked as 1's (largets value which contains the search query).  I then performed a binary search of the sorted suffix array.  The top found the first match and bottom found the last match.  So I added all suffix positions in between to the results.  
+Then, for each Short-Read, I went linearly through the Genome-Edge array, until the Genome-Edge encoding was shorter than the Short-Read.  For each element of the Genome-Edge array, I masked for the length of the Short-Read, so all non-encoding bits were 0's.  Matches were added to the results.
+Finally the results were sorted and then reported.
