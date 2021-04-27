@@ -1,6 +1,6 @@
 /***********************************************************************
 *  NAME:       nucleotide_search.cpp
-*  PURPOSE:    Search for >32 character short reads in larger genome file.
+*  PURPOSE:    Search for length <32 short reads in larger genome file.
 *  METHOD:     - Encodes 4-char alphabet {A,C,G,T} genome sequence into bit-packed sequence, using 2-bits {00,01,10,11} per character.
 *              - Builds suffix array of genome file by generating 32 char suffixes, starting at every position in genome, then sorting array.
 *              - For each short read, creates minimum and maximum prefix containing short read by padding with 0s or 1s, resp.
