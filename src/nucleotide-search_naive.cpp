@@ -1,9 +1,6 @@
 /***********************************************************************
-* 
 *  NAME:  nucleotide_search_unpacked.cpp
-*
-*  DESC:  Search for short reads in genome file.
-*
+*  DESC:  Search for short reads in larger genome file.
 ************************************************************************/
 
 // imports

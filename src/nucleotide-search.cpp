@@ -1,7 +1,11 @@
 /***********************************************************************
-*  NAME:   nucleotide_search.cpp
-*  DESC:   Find positions of all short reads (<32 length) in genome.
-*  USAGE:  
+*  NAME:       nucleotide_search.cpp
+*  PURPOSE:    Search for >32 character short reads in larger genome file.
+*  METHOD:     - Encodes 4-alphabet {A,C,G,T} genome sequence into bitpacked 2-bits {00,01,10,11} per character.
+*              - Builds suffix array of genome file by generating a suffix starting at every position in genome and sorting array.
+*              - For each short read, creates minimum and maximum prefix containing short read by padding with 0s or 1s, resp.
+*              - Perform binary search for minimum prefix and maximum prefix.  
+*              - If results are found, the inclusive range of maximum and minimum search within suffix array all match short read.
 *
 ************************************************************************/
 
@@ -29,13 +33,13 @@ typedef struct {
    unsigned int index;
 } SUFFIX;
 
-/* bitpacked short read */
+/* bitpacked short reads */
 typedef struct {
    SUFFIX_DATATYPE data;
    unsigned int len;
 } SREAD;
 
-/* resizable suffix array */
+/* resizable suffix array of genome */
 typedef struct {
    unsigned int len;
    unsigned int size;
@@ -313,7 +317,7 @@ void results_quicksort(unsigned int*__restrict arr, unsigned int lo, unsigned in
    return;
 }
 
-/* 
+/*    
  *
  */
 int main(int argc, char *argv[])
@@ -326,7 +330,7 @@ int main(int argc, char *argv[])
    VECTOR_SREAD sreads;          /* queries: vector of short genome reads */
    SUFFIX_DATATYPE sread, sread_top, sread_btm, sgenome, mask, gen;
    unsigned int idx, top_idx, btm_idx, sread_len;  /* indices for binary searches */
-   char c_i;                     /* buffer character for reading in files */
+   char char_at_i;               /* buffer character for reading in files */
    int n, i, j;                  /* indices for sorting */
    RESULT*__restrict results;
 
@@ -338,7 +342,7 @@ int main(int argc, char *argv[])
    }
    else
    {
-      /* output help info if incorrect number of args given */
+      /* output help in_fileo if incorrect number of args given */
       cout << "Usage: <genome_filename> <short_reads_filename>" << endl;
       exit(0);
    }
@@ -356,30 +360,33 @@ int main(int argc, char *argv[])
       unsigned int b = 0;
 
       /* open genome file */
-      ifstream inf(genome_fname);
+      ifstream in_file(genome_fname);
 
       /* fill block with data before adding it to the genome */
       /* (TODO: check if genome->length < 32)? */
       for (i = 0; i < (NUCL_WIDTH - 1); ++i)
       {
-         inf.get(c_i);
+         in_file.get(char_at_i);
          block <<= 2;
-         block += nucl_encoder[c_i];
+         block += nucl_encoder[char_at_i];
       }
 
       /* interior blocks of data */
-      while (inf.get(c_i))
+      while (in_file.get(char_at_i))
       {
-         if (c_i == '\n')
+         /* check for end of line */
+         if (char_at_i == '\n')
             break;
 
+         /* shift bitpacked sequence left by two (one bit-packed character) */
          block <<= 2;
-         block += nucl_encoder[c_i];
+         block += nucl_encoder[char_at_i];
 
+         /* add suffix to array with position in sequence */
          genome.data[b] = {block, b + 1};
          ++b;
 
-         // resize genome if needed
+         /* resize genome suffix array if needed */
          if (b >= genome.size)
          {
             genome.size *= 2;
@@ -387,12 +394,14 @@ int main(int argc, char *argv[])
          }
       }
       genome.len = b;
-      inf.close();
+      in_file.close();
 
       /* reached end of sequence (ending data is null) */
       genome_edge.len = DATA_WIDTH;
       genome_edge.size = DATA_WIDTH;
       genome_edge.data = (SUFFIX *) malloc(genome_edge.len * sizeof(SUFFIX));
+
+      /* store all partial suffixes (not full block) in separate list */
       for (i = 0; i < ((DATA_WIDTH - 1) >> 1); i += 1)
       {
          block <<= 2;
@@ -411,15 +420,15 @@ int main(int argc, char *argv[])
       unsigned int b = 0;
 
       /* open short reads file */
-      ifstream inf(sreads_fname);
+      ifstream in_file(sreads_fname);
 
-      while (inf.get(c_i))
+      while (in_file.get(char_at_i))
       {
          // all short read are <32 bits, so don't worry about overflowing block
-         if (c_i != '\n')
+         if (char_at_i != '\n')
          {
             block <<= 2;
-            block += nucl_encoder[c_i];
+            block += nucl_encoder[char_at_i];
             b++;
          }
          else
@@ -442,7 +451,7 @@ int main(int argc, char *argv[])
             block = 0;
          }
       }
-      inf.close();
+      in_file.close();
 
       /* create results array */
       results = (RESULT *) malloc(sreads.size * sizeof(RESULT));

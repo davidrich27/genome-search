@@ -9,16 +9,18 @@ CC 		:= gcc
 CXX 		:= g++
 CP 		:= cp 
 
-TARGET 	:= nucleotide-search
+TARGET 	:= nucleotide-search-opt.out
 
-SOURCES 	:= nucleotide-search.cpp  \
-				Clock.cpp
+SOURCE 	:= nucleotide-search.cpp  \
+				Clock.hpp
 
-SOURCE_DIR := src 
-SOURCES    := $(SOURCES:%=$(SOURCE_DIR)/%)
+CXX_FLAGs := -O3 -march=native -std=c++17
+
+SOURCE_DIR := src
+SOURCES   = $(SOURCE:%=$(SOURCE_DIR)/%)
 
 $(TARGET): $(SOURCES)
-	$(CXX) -O3 $(SOURCES) -o $(@) 
+	$(CXX) $(CXX_FLAGS) $(SOURCES) -o $(@) 
 	
 $(SOURCES): 
 	$(CXX) $(@)
