@@ -1,28 +1,27 @@
 /***********************************************************************
 *  NAME:       nucleotide_search.cpp
 *  PURPOSE:    Search for >32 character short reads in larger genome file.
-*  METHOD:     - Encodes 4-alphabet {A,C,G,T} genome sequence into bitpacked 2-bits {00,01,10,11} per character.
-*              - Builds suffix array of genome file by generating a suffix starting at every position in genome and sorting array.
+*  METHOD:     - Encodes 4-char alphabet {A,C,G,T} genome sequence into bit-packed sequence, using 2-bits {00,01,10,11} per character.
+*              - Builds suffix array of genome file by generating 32 char suffixes, starting at every position in genome, then sorting array.
 *              - For each short read, creates minimum and maximum prefix containing short read by padding with 0s or 1s, resp.
 *              - Perform binary search for minimum prefix and maximum prefix.  
 *              - If results are found, the inclusive range of maximum and minimum search within suffix array all match short read.
-*
 ************************************************************************/
 
-// imports
+/* imports */
 #include <iostream>
 #include <fstream>
 #include <string>
 #include <climits>
 
-// local imports
+/* local imports */
 #include "Clock.hpp"
 
-// data type of bitpacked blocks
+/* data type of bit-packed blocks */
 #define SUFFIX_DATATYPE unsigned long
-// data size of packed blocks (in bits)
+/* data size of packed blocks (in bits) */
 #define DATA_WIDTH (sizeof(SUFFIX_DATATYPE) * CHAR_BIT)
-// number of nucleotides that fit in the data type (divide by 2)
+/* number of nucleotides that fit in packed block (2-bits per char, so divide by 2) */
 #define NUCL_WIDTH (DATA_WIDTH >> 1)
 
 using namespace std;
@@ -60,7 +59,7 @@ typedef struct {
    unsigned int *data;
 } RESULT;
 
-/* encoder for quickly translating from 8-bit ascii values to the bit-packed values of nucleotides  */
+/* encoder for translating from ascii values to the bit-packed values of nucleotides  */
 int nucl_encoder[] = { 
    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 
    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 
